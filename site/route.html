@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Маршрут — Тропы России</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/map-data.js"></script>
+  <style>
+    body { background: #FAFAF7; }
+
+    .route-page { flex: 1; padding: 32px 0 72px; }
+    .route-container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+    .route-hero {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 36px;
+      align-items: start;
+      margin-bottom: 28px;
+    }
+
+    .route-photo {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      aspect-ratio: 16 / 11;
+      background: linear-gradient(160deg, #1B4332 0%, #2D6A4F 55%, #40916C 100%);
+      box-shadow: 0 10px 32px rgba(27, 67, 50, 0.12);
+    }
+    .route-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .route-photo-placeholder {
+      width: 100%; height: 100%; display: grid; place-items: center;
+    }
+    .route-photo-placeholder svg { width: 72px; height: 72px; opacity: 0.85; }
+    .route-photo-badge {
+      position: absolute; left: 16px; bottom: 16px;
+      background: rgba(26, 26, 26, 0.72);
+      color: #fff; font-size: 0.8rem; font-weight: 600;
+      padding: 6px 12px; border-radius: 999px;
+      backdrop-filter: blur(6px);
+    }
+
+    .route-hero-info { padding-top: 4px; }
+    .route-region {
+      font-size: 0.875rem; font-weight: 500; color: #2D6A4F; margin-bottom: 10px;
+    }
+    .route-title {
+      font-family: 'Manrope', sans-serif;
+      font-weight: 800; font-size: 2rem; line-height: 1.2;
+      letter-spacing: -0.03em; color: #1A1A1A; margin-bottom: 22px;
+    }
+
+    .route-stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px;
+    }
+    .route-stat-card {
+      background: #fff; border: 1px solid #EDE8DF; border-radius: 14px;
+      padding: 14px 16px; box-shadow: 0 2px 10px rgba(27, 67, 50, 0.04);
+    }
+    .route-stat-card span {
+      display: block; font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase; color: #7A8478; margin-bottom: 4px;
+    }
+    .route-stat-card strong {
+      font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 1.05rem; color: #1A1A1A;
+    }
+
+    .route-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn-plan {
+      background: #2D6A4F; color: #fff; font-weight: 600; font-size: 0.9rem;
+      padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-plan:hover { background: #1B4332; }
+    .btn-fav {
+      background: #F5F0E8; color: #1A1A1A; font-weight: 600; font-size: 0.9rem;
+      padding: 12px 18px; border-radius: 12px; border: 1px solid #E8E2D9; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s;
+    }
+    .btn-fav:hover { background: #EDE6DA; }
+
+    .route-tabs {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 24px; padding: 4px;
+      background: #F0EDE6; border-radius: 14px; width: fit-content; max-width: 100%;
+    }
+    .route-tab {
+      font-size: 0.875rem; font-weight: 500; color: #4A5568;
+      padding: 10px 16px; border-radius: 10px; border: none; background: transparent;
+      cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    }
+    .route-tab:hover { color: #1A1A1A; }
+    .route-tab.active {
+      background: #fff; color: #1A1A1A; font-weight: 600;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .route-body {
+      display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: start;
+    }
+    .route-panel { display: none; }
+    .route-panel.active { display: block; }
+
+    .route-card {
+      background: #fff; border: 1px solid #EDE8DF; border-radius: 16px;
+      padding: 24px 26px; margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(27, 67, 50, 0.04);
+    }
+    .route-card h2 {
+      font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 1.1rem;
+      color: #1A1A1A; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .route-card h2 .emoji { font-size: 1.1rem; }
+    .route-card p {
+      color: #4A5568; font-size: 0.95rem; line-height: 1.7; white-space: pre-line; margin-bottom: 12px;
+    }
+    .route-card p:last-child { margin-bottom: 0; }
+
+    .map-placeholder {
+      border: 2px dashed #A8D5BA; border-radius: 14px;
+      background: linear-gradient(180deg, #E8F5E9 0%, #F1F8F2 100%);
+      min-height: 220px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 8px; padding: 32px 20px; text-align: center; color: #2D6A4F;
+    }
+    .map-placeholder .map-icon { font-size: 1.75rem; opacity: 0.7; }
+    .map-placeholder strong {
+      font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 1rem; color: #1B4332;
+    }
+    .map-placeholder span { font-size: 0.85rem; color: #4A5568; }
+    .map-placeholder iframe { width: 100%; height: 320px; border: 0; border-radius: 10px; }
+    .map-live {
+      height: 360px;
+      width: 100%;
+      border-radius: 12px;
+      z-index: 1;
+      background: #e8f0e8;
+    }
+    .map-placeholder.has-map {
+      border-style: solid;
+      border-color: #EDE8DF;
+      background: #fff;
+      padding: 0;
+      min-height: 360px;
+      display: block;
+      overflow: hidden;
+    }
+    .leaflet-container { font-family: Inter, system-ui, sans-serif; }
+
+    .sidebar-card {
+      background: #fff; border: 1px solid #EDE8DF; border-radius: 16px;
+      padding: 22px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(27, 67, 50, 0.04);
+    }
+    .sidebar-card h3 {
+      font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 1rem; color: #1A1A1A; margin-bottom: 14px;
+    }
+    .sidebar-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .sidebar-tag {
+      font-size: 0.8rem; font-weight: 600; padding: 5px 12px; border-radius: 999px;
+      background: #F0FFF4; color: #2D6A4F;
+    }
+    .sidebar-tag.muted { background: #F5F0E8; color: #5C5548; }
+    .sidebar-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+    .sidebar-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9rem; }
+    .sidebar-row span { color: #7A8478; }
+    .sidebar-row strong { font-weight: 600; color: #1A1A1A; text-align: right; }
+    .sidebar-card .btn-plan { width: 100%; text-align: center; margin-bottom: 8px; }
+    .btn-map-outline {
+      width: 100%; text-align: center; background: #fff; color: #1A1A1A; font-weight: 600;
+      font-size: 0.9rem; padding: 11px 16px; border-radius: 12px; border: 1px solid #E8E2D9;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-map-outline:hover { background: #FBF8F3; }
+    .contact-row {
+      display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 10px;
+    }
+    .contact-row span { color: #4A5568; }
+    .contact-row strong { font-weight: 700; color: #1A1A1A; }
+    .contact-note { font-size: 0.85rem; color: #7A8478; line-height: 1.5; }
+
+    .route-loading, .route-error { text-align: center; padding: 80px 20px; color: #4A5568; }
+    .route-error h2 { font-family: 'Manrope', sans-serif; color: #1A1A1A; margin-bottom: 8px; }
+
+    @media (max-width: 900px) {
+      .route-hero { grid-template-columns: 1fr; }
+      .route-body { grid-template-columns: 1fr; }
+      .route-title { font-size: 1.6rem; }
+    }
+    @media (max-width: 560px) {
+      .route-stats-grid { grid-template-columns: 1fr; }
+      .route-tabs { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 19h20L12 2z"/>
+            <path d="M12 10v4M12 18h.01"/>
+          </svg>
+        </span>
+        Тропы России
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="active">Маршруты</a>
+        <a href="index.html#gear">Снаряжение</a>
+        <a href="index.html#beginners">Для новичков</a>
+        <a href="index.html#regions">Регионы</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn btn-ghost">Войти</button>
+        <a href="#" class="btn btn-primary">Мой план</a>
+        <button class="menu-btn" aria-label="Меню">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="route-page">
+    <div class="route-container" id="route-root">
+      <div class="route-loading">Загрузка маршрута…</div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="logo">
+            <span class="logo-mark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20">
+                <path d="M12 2L2 19h20L12 2z"/>
+              </svg>
+            </span>
+            Тропы России
+          </div>
+          <p>Помогаем безопасно выбирать и планировать пешие маршруты по всей России. Актуальная информация, карты и снаряжение.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Разделы</h4>
+          <a href="index.html">Каталог маршрутов</a>
+          <a href="index.html#regions">Регионы</a>
+          <a href="index.html#beginners">Для новичков</a>
+          <a href="#">Безопасность</a>
+        </div>
+        <div class="footer-col">
+          <h4>Полезное</h4>
+          <a href="#">Как выбрать маршрут</a>
+          <a href="#">Список снаряжения</a>
+          <a href="#">ООПТ и пропуска</a>
+          <a href="#">Экстренные контакты</a>
+        </div>
+        <div class="footer-col">
+          <h4>О проекте</h4>
+          <a href="#">О нас</a>
+          <a href="#">Источники данных</a>
+          <a href="#">Контакты</a>
+          <a href="#">Для волонтёров</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Тропы России · Волонтёрский проект</span>
+        <span>Сделано с заботой о природе</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+  (function () {
+    function esc(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function textOrDash(v) {
+      if (v == null || String(v).trim() === '') return '—';
+      return String(v);
+    }
+
+    function paragraphBlock(text) {
+      if (!text || !String(text).trim()) {
+        return '<p>Информация появится после заполнения в базе данных.</p>';
+      }
+      return '<p>' + esc(text) + '</p>';
+    }
+
+    function mapBlock(data) {
+      // Контейнер; реальная карта инициализируется после вставки в DOM
+      return (
+        '<div class="map-placeholder" data-map-host="1">' +
+          '<div class="map-icon">🗺</div>' +
+          '<strong>Интерактивная карта (OpenStreetMap)</strong>' +
+          '<span>Загрузка…</span>' +
+        '</div>'
+      );
+    }
+
+    function parseMapData(raw) {
+      if (raw == null || raw === '') return null;
+      if (typeof raw === 'object') return raw;
+      var s = String(raw).trim();
+      if (!s) return null;
+
+      // iframe HTML
+      if (s.indexOf('<iframe') !== -1) return { type: 'iframe', html: s };
+
+      // URL
+      if (/^https?:\/\//i.test(s)) return { type: 'url', url: s };
+
+      // JSON
+      try {
+        return JSON.parse(s);
+      } catch (e) {}
+
+      // "lat,lng" или "lat lng"
+      var m = s.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if (m) {
+        return {
+          type: 'geojson',
+          center: [parseFloat(m[1]), parseFloat(m[2])],
+          zoom: 13,
+          points: [{ lat: parseFloat(m[1]), lng: parseFloat(m[2]), label: 'Точка маршрута', kind: 'start' }]
+        };
+      }
+
+      return { type: 'text', text: s };
+    }
+
+    function ensureLeaflet() {
+      return new Promise(function (resolve, reject) {
+        if (window.L) return resolve(window.L);
+
+        var urls = [
+          'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+          'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
+        ];
+
+        function tryLoad(i) {
+          if (i >= urls.length) {
+            reject(new Error('Не удалось загрузить Leaflet (проверьте интернет / блокировщик)'));
+            return;
+          }
+          var s = document.createElement('script');
+          s.src = urls[i];
+          s.async = true;
+          s.onload = function () {
+            if (window.L) resolve(window.L);
+            else tryLoad(i + 1);
+          };
+          s.onerror = function () {
+            s.remove();
+            tryLoad(i + 1);
+          };
+          document.head.appendChild(s);
+        }
+        tryLoad(0);
+      });
+    }
+
+    function renderTrailMap(host, raw) {
+      var data = parseMapData(raw);
+
+      if (!data) {
+        host.className = 'map-placeholder';
+        host.innerHTML =
+          '<div class="map-icon">🗺</div>' +
+          '<strong>Интерактивная карта (OpenStreetMap)</strong>' +
+          '<span>Добавьте map_data в БД: GeoJSON, координаты старта или ссылку</span>';
+        return;
+      }
+
+      if (data.type === 'iframe' && data.html) {
+        host.className = 'map-placeholder has-map';
+        host.innerHTML = data.html;
+        return;
+      }
+
+      if (data.type === 'url') {
+        // Если это прямая ссылка на карту — iframe; для .gpx/.geojson попробуем загрузить ниже
+        var url = data.url;
+        if (/\.(geojson|json)(\?|$)/i.test(url) || /format=geojson/i.test(url)) {
+          // load remote geojson below via fetch path
+        } else if (!/\.(gpx)(\?|$)/i.test(url)) {
+          host.className = 'map-placeholder has-map';
+          host.innerHTML = '<iframe src="' + esc(url) + '" loading="lazy" allowfullscreen></iframe>';
+          return;
+        }
+      }
+
+      if (data.type === 'text') {
+        host.className = 'map-placeholder';
+        host.innerHTML = '<div class="map-icon">🗺</div><strong>' + esc(data.text) + '</strong>';
+        return;
+      }
+
+      // Leaflet + OSM
+      host.className = 'map-placeholder has-map';
+      host.innerHTML = '<div class="map-live"></div>';
+      var el = host.querySelector('.map-live');
+
+      ensureLeaflet().then(function (L) {
+        var center = data.center || [61.5, 34.0];
+        // center may be [lat,lng]
+        var map = L.map(el, { scrollWheelZoom: false }).setView(center, data.zoom || 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        var bounds = null;
+
+        function addGeoJSON(gj) {
+          var layer = L.geoJSON(gj, {
+            style: function () {
+              return { color: '#2D6A4F', weight: 4, opacity: 0.9 };
+            },
+            pointToLayer: function (feature, latlng) {
+              return L.circleMarker(latlng, {
+                radius: 7,
+                color: '#1B4332',
+                fillColor: '#40916C',
+                fillOpacity: 0.9,
+                weight: 2
+              });
+            },
+            onEachFeature: function (feature, layer) {
+              var name = feature.properties && (feature.properties.name || feature.properties.label);
+              if (name) layer.bindPopup(String(name));
+            }
+          }).addTo(map);
+          try {
+            var b = layer.getBounds();
+            if (b && b.isValid()) bounds = bounds ? bounds.extend(b) : b;
+          } catch (e) {}
+        }
+
+        if (data.geojson) addGeoJSON(data.geojson);
+        // Sometimes the whole object is a Feature/FeatureCollection
+        if (data.type === 'Feature' || data.type === 'FeatureCollection') addGeoJSON(data);
+        if (data.features) addGeoJSON(data);
+
+        (data.points || []).forEach(function (p) {
+          var lat = p.lat != null ? p.lat : p[0];
+          var lng = p.lng != null ? p.lng : p[1];
+          if (lat == null || lng == null) return;
+          var marker = L.marker([lat, lng]).addTo(map);
+          if (p.label) marker.bindPopup(String(p.label));
+          if (!bounds) bounds = L.latLngBounds([lat, lng], [lat, lng]);
+          else bounds.extend([lat, lng]);
+        });
+
+        // Remote GeoJSON / GPX URL
+        if (data.type === 'url' && data.url) {
+          fetch(data.url)
+            .then(function (r) { return r.text(); })
+            .then(function (text) {
+              if (/<gpx/i.test(text)) {
+                // GPX: trkpt / rtept, любой порядок lat/lon
+                var coords = [];
+                var re = /<(?:trkpt|rtept)([^>]+)>/gi;
+                var m;
+                while ((m = re.exec(text))) {
+                  var attrs = m[1];
+                  var la = attrs.match(/\blat=["']([^"']+)["']/i);
+                  var lo = attrs.match(/\blon=["']([^"']+)["']/i);
+                  if (la && lo) coords.push([parseFloat(lo[1]), parseFloat(la[1])]);
+                }
+                if (coords.length) {
+                  // прореживаем очень длинные треки
+                  if (coords.length > 2000) {
+                    var step = Math.ceil(coords.length / 1500);
+                    var thin = [];
+                    for (var i = 0; i < coords.length; i += step) thin.push(coords[i]);
+                    if (thin[thin.length - 1] !== coords[coords.length - 1]) thin.push(coords[coords.length - 1]);
+                    coords = thin;
+                  }
+                  addGeoJSON({
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates: coords },
+                    properties: { name: 'Трек' }
+                  });
+                }
+              } else {
+                try {
+                  addGeoJSON(JSON.parse(text));
+                } catch (e) {}
+              }
+              if (bounds && bounds.isValid()) map.fitBounds(bounds, { padding: [28, 28] });
+              setTimeout(function () { map.invalidateSize(); }, 100);
+            })
+            .catch(function (err) {
+              console.warn('[Карта] GPX/GeoJSON не загружен:', data.url, err);
+              // остаются fallback points, если они были
+              if (bounds && bounds.isValid()) map.fitBounds(bounds, { padding: [28, 28] });
+            });
+        }
+
+        if (bounds && bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [28, 28] });
+        }
+
+        // Leaflet needs size when tab becomes visible
+        host._trailMap = map;
+        setTimeout(function () { map.invalidateSize(); }, 50);
+      }).catch(function (err) {
+        host.className = 'map-placeholder';
+        host.innerHTML = '<div class="map-icon">🗺</div><strong>Не удалось загрузить карту</strong><span>' + esc(err.message || err) + '</span>';
+      });
+    }
+
+    function initMaps(root, mapData) {
+      var hosts = root.querySelectorAll('[data-map-host]');
+      hosts.forEach(function (host) {
+        renderTrailMap(host, mapData);
+      });
+    }
+
+    function bindTabs(root) {
+
+      var tabs = root.querySelectorAll('.route-tab');
+      var panels = root.querySelectorAll('.route-panel');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var id = tab.getAttribute('data-tab');
+          tabs.forEach(function (t) { t.classList.toggle('active', t === tab); });
+          panels.forEach(function (p) {
+            p.classList.toggle('active', p.getAttribute('data-panel') === id);
+          });
+          // Leaflet: пересчитать размер, когда вкладка с картой стала видимой
+          if (id === 'map' || id === 'desc') {
+            setTimeout(function () {
+              root.querySelectorAll('[data-map-host]').forEach(function (h) {
+                if (h._trailMap) h._trailMap.invalidateSize();
+              });
+            }, 80);
+          }
+        });
+      });
+    }
+
+    async function run() {
+      var root = document.getElementById('route-root');
+      var slug = new URLSearchParams(location.search).get('slug');
+
+      if (!slug) {
+        root.innerHTML =
+          '<div class="route-error"><h2>Маршрут не указан</h2>' +
+          '<p><a href="index.html" style="color:#2D6A4F;font-weight:600">← К списку маршрутов</a></p></div>';
+        return;
+      }
+
+      var routes = await loadRoutes();
+      var r = routes.find(function (x) { return x.slug === slug; });
+
+      if (!r) {
+        root.innerHTML =
+          '<div class="route-error"><h2>Маршрут не найден</h2>' +
+          '<p>Проверьте ссылку или вернитесь к <a href="index.html" style="color:#2D6A4F;font-weight:600">каталогу</a>.</p></div>';
+        return;
+      }
+
+      document.title = r.title + ' — Тропы России';
+
+      var tags = (typeof normalizeTags === 'function' ? normalizeTags(r.tags) : (r.tags || []));
+      var diffLabel = r.difficulty || '';
+      var typeLabel = r.route_type || '';
+
+      var photoHtml = r.photo_url
+        ? '<img src="' + esc(r.photo_url) + '" alt="' + esc(r.title) + '" />'
+        : (
+          '<div class="route-photo-placeholder">' +
+            '<svg viewBox="0 0 64 64" fill="none">' +
+              '<path d="M8 48L24 28l12 14 8-10 12 16H8z" fill="rgba(255,255,255,0.25)"/>' +
+              '<path d="M32 12l8 14H24l8-14z" fill="rgba(255,255,255,0.45)"/>' +
+              '<circle cx="48" cy="18" r="5" fill="rgba(255,255,255,0.35)"/>' +
+            '</svg>' +
+          '</div>'
+        );
+
+      var sidebarTags = '';
+      if (diffLabel) sidebarTags += '<span class="sidebar-tag">' + esc(diffLabel) + '</span>';
+      if (typeLabel) sidebarTags += '<span class="sidebar-tag muted">' + esc(typeLabel) + '</span>';
+      tags.slice(0, 4).forEach(function (t) {
+        var label = String(t);
+        if (label.toLowerCase() === String(diffLabel).toLowerCase()) return;
+        if (label.toLowerCase() === String(typeLabel).toLowerCase()) return;
+        sidebarTags += '<span class="sidebar-tag muted">' + esc(label) + '</span>';
+      });
+
+      root.innerHTML =
+        '<div class="route-hero">' +
+          '<div class="route-photo">' +
+            photoHtml +
+            '<span class="route-photo-badge">+ фото</span>' +
+          '</div>' +
+          '<div class="route-hero-info">' +
+            '<div class="route-region">' + esc(r.region_name || 'Россия') + '</div>' +
+            '<h1 class="route-title">' + esc(r.title) + '</h1>' +
+            '<div class="route-stats-grid">' +
+              '<div class="route-stat-card"><span>Длина</span><strong>' +
+                (r.distance_km != null ? r.distance_km + ' км' : '—') +
+              '</strong></div>' +
+              '<div class="route-stat-card"><span>Время</span><strong>' +
+                esc(textOrDash(r.duration_text)) +
+              '</strong></div>' +
+              '<div class="route-stat-card"><span>Набор высоты</span><strong>' +
+                (r.elevation_m != null ? r.elevation_m + ' м' : '—') +
+              '</strong></div>' +
+              '<div class="route-stat-card"><span>Тип</span><strong>' +
+                esc(textOrDash(r.route_type)) +
+              '</strong></div>' +
+            '</div>' +
+            '<div class="route-hero-actions">' +
+              '<button type="button" class="btn-plan">Добавить в мой план</button>' +
+              '<button type="button" class="btn-fav">♡ В избранное</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="route-tabs" role="tablist">' +
+          '<button type="button" class="route-tab active" data-tab="desc">Описание</button>' +
+          '<button type="button" class="route-tab" data-tab="map">Карта и профиль</button>' +
+          '<button type="button" class="route-tab" data-tab="rest">Места для отдыха</button>' +
+          '<button type="button" class="route-tab" data-tab="howto">Как добраться</button>' +
+          '<button type="button" class="route-tab" data-tab="tips">Рекомендации</button>' +
+        '</div>' +
+
+        '<div class="route-body">' +
+          '<div class="route-main">' +
+            '<div class="route-panel active" data-panel="desc">' +
+              '<div class="route-card">' +
+                '<h2><span class="emoji">📝</span> Описание маршрута</h2>' +
+                paragraphBlock(r.description || r.short_announcement) +
+              '</div>' +
+              '<div class="route-card">' +
+                '<h2><span class="emoji">🗺</span> Карта маршрута</h2>' +
+                mapBlock(r.map_data) +
+              '</div>' +
+            '</div>' +
+
+            '<div class="route-panel" data-panel="map">' +
+              '<div class="route-card">' +
+                '<h2><span class="emoji">🗺</span> Карта и профиль</h2>' +
+                mapBlock(r.map_data) +
+              '</div>' +
+            '</div>' +
+
+            '<div class="route-panel" data-panel="rest">' +
+              '<div class="route-card">' +
+                '<h2>Места для отдыха</h2>' +
+                paragraphBlock(r.rest_and_sleep) +
+              '</div>' +
+            '</div>' +
+
+            '<div class="route-panel" data-panel="howto">' +
+              '<div class="route-card">' +
+                '<h2>Как добраться до старта</h2>' +
+                paragraphBlock(r.how_to_get) +
+              '</div>' +
+            '</div>' +
+
+            '<div class="route-panel" data-panel="tips">' +
+              '<div class="route-card">' +
+                '<h2>Рекомендации</h2>' +
+                paragraphBlock(r.recommendations) +
+              '</div>' +
+              (r.dangers ? (
+                '<div class="route-card"><h2>Опасности</h2>' + paragraphBlock(r.dangers) + '</div>'
+              ) : '') +
+              (r.water_info ? (
+                '<div class="route-card"><h2>Вода</h2>' + paragraphBlock(r.water_info) + '</div>'
+              ) : '') +
+              (r.gear_list ? (
+                '<div class="route-card"><h2>Снаряжение</h2>' + paragraphBlock(r.gear_list) + '</div>'
+              ) : '') +
+            '</div>' +
+          '</div>' +
+
+          '<aside class="route-sidebar">' +
+            '<div class="sidebar-card">' +
+              '<h3>Краткая информация</h3>' +
+              (sidebarTags ? '<div class="sidebar-tags">' + sidebarTags + '</div>' : '') +
+              '<div class="sidebar-rows">' +
+                '<div class="sidebar-row"><span>Длина</span><strong>' +
+                  (r.distance_km != null ? r.distance_km + ' км' : '—') +
+                '</strong></div>' +
+                '<div class="sidebar-row"><span>Время в пути</span><strong>' +
+                  esc(textOrDash(r.duration_text)) +
+                '</strong></div>' +
+                '<div class="sidebar-row"><span>Набор высоты</span><strong>' +
+                  (r.elevation_m != null ? r.elevation_m + ' м' : '—') +
+                '</strong></div>' +
+                '<div class="sidebar-row"><span>Лучший сезон</span><strong>' +
+                  esc(textOrDash(r.best_months)) +
+                '</strong></div>' +
+              '</div>' +
+              '<button type="button" class="btn-plan">Добавить в мой план</button>' +
+              '<button type="button" class="btn-map-outline" data-goto-map>открыть карту</button>' +
+            '</div>' +
+            '<div class="sidebar-card">' +
+              '<h3>Полезные контакты</h3>' +
+              '<div class="contact-row"><span>МЧС</span><strong>112</strong></div>' +
+              '<p class="contact-note">Перед выходом в лес рекомендуется сообщить маршрут близким или зарегистрироваться в приложении «МЧС России».</p>' +
+            '</div>' +
+          '</aside>' +
+        '</div>';
+
+      bindTabs(root);
+      initMaps(root, (typeof resolveTrailMapData === "function" ? resolveTrailMapData(r) : r.map_data));
+
+      var mapBtn = root.querySelector('[data-goto-map]');
+      if (mapBtn) {
+        mapBtn.addEventListener('click', function () {
+          var tab = root.querySelector('.route-tab[data-tab="map"]');
+          if (tab) tab.click();
+          var panel = root.querySelector('.route-panel[data-panel="map"]');
+          if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+    }
+
+    run();
+  })();
+  </script>
+</body>
+</html>
