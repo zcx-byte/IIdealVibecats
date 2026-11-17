@@ -11,7 +11,6 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <!-- HEADER -->
   <header class="header">
     <div class="header-inner">
       <a href="index.html" class="logo">
@@ -34,7 +33,7 @@
       <div class="header-actions">
         <button class="btn btn-ghost">Войти</button>
         <a href="#" class="btn btn-primary">Мой план</a>
-        <button class="menu-btn" aria-label="Меню">
+        <button class="menu-btn" aria-label="Открыть меню">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
@@ -43,10 +42,8 @@
     </div>
   </header>
 
-  <!-- MAIN -->
   <main class="main">
     <div class="main-inner">
-      <!-- SIDEBAR FILTERS -->
       <aside class="sidebar">
         <h2 class="sidebar-title">Фильтры</h2>
 
@@ -64,9 +61,7 @@
 
         <div class="filter-block">
           <label class="filter-label">Теги</label>
-          <div class="filter-chips" id="tag-chips">
-            <!-- заполняется из JS по данным из БД -->
-          </div>
+          <div class="filter-chips" id="tag-chips"></div>
         </div>
 
         <div class="filter-block">
@@ -104,7 +99,6 @@
         </div>
       </aside>
 
-      <!-- CONTENT -->
       <div class="content" id="routes">
         <p id="load-status" style="display:none;margin-bottom:16px;padding:12px 16px;background:#FFF3E0;border-radius:10px;color:#E65100;font-size:0.9rem;"></p>
         <div class="content-header">
@@ -120,9 +114,7 @@
           </select>
         </div>
 
-        <div class="routes-grid" id="routes-grid">
-          <!-- карточки рендерятся из JS -->
-        </div>
+        <div class="routes-grid" id="routes-grid"></div>
 
         <div class="load-more-wrap" id="load-more-wrap" style="display: none;">
           <button type="button" class="btn-load-more" id="btn-load-more">Показать ещё</button>
@@ -131,7 +123,6 @@
     </div>
   </main>
 
-  <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-top">
@@ -175,6 +166,6 @@
     </div>
   </footer>
 
-  <script src="js/app.js"></script>
+  <script src="js/app.js" defer></script>
 </body>
 </html>
