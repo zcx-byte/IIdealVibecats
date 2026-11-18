@@ -24,14 +24,12 @@
         Тропы России
       </a>
       <nav class="nav">
-        <a href="index.html" class="active">Маршруты</a>
-        <a href="index.html#gear">Снаряжение</a>
-        <a href="index.html#beginners">Для новичков</a>
-        <a href="index.html#regions">Регионы</a>
+        <a href="index.html">Маршруты</a>
+        <a href="beginners.html">Дополнительная информация для новичков</a>
       </nav>
       <div class="header-actions">
-        <button class="btn btn-ghost">Войти</button>
-        <a href="#" class="btn btn-primary">Мой план</a>
+        <button class="btn btn-ghost" type="button" data-auth-control>Войти</button>
+        <a href="account.html#plan" class="btn btn-primary" data-account-link>Мой план</a>
         <button class="menu-btn" aria-label="Открыть меню">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 6h16M4 12h16M4 18h16"/>
@@ -64,8 +62,8 @@
         <div class="footer-col">
           <h4>Разделы</h4>
           <a href="index.html">Каталог маршрутов</a>
-          <a href="index.html#regions">Регионы</a>
-          <a href="index.html#beginners">Для новичков</a>
+          <a href="beginners.html">Для новичков</a>
+          <a href="beginners.html">Дополнительная информация для новичков</a>
           <a href="#">Безопасность</a>
         </div>
         <div class="footer-col">
@@ -92,9 +90,37 @@
 
   <!-- Подключаем базовую логику (загрузка данных, конфиг) -->
   <script src="js/app.js" defer></script>
+  <script src="js/auth.js" defer></script>
   <!-- Подключаем логику карт (сопоставление GPX) -->
   <script src="js/map-data.js" defer></script>
   <!-- Подключаем специфичную логику страницы маршрута -->
   <script src="js/route.js" defer></script>
+  <!-- ИИ-помощник по маршрутам -->
+  <link rel="stylesheet" href="css/trail-assistant.css" />
+  <button id="trail-chat-button" type="button" aria-label="Открыть помощника" title="Подобрать маршрут">🧭</button>
+
+  <section id="trail-chat-window" aria-label="Помощник по маршрутам" aria-hidden="true">
+    <header id="trail-chat-header">
+      <div>
+        <strong>Помощник по маршрутам</strong>
+        <small>ИИ-консультант по маршрутам</small>
+      </div>
+      <button id="trail-chat-close" type="button" aria-label="Закрыть чат">×</button>
+    </header>
+    <div id="trail-chat-messages" aria-live="polite">
+      <div class="trail-msg bot">Привет! Я ИИ-помощник сайта «Тропы России». Могу помочь подобрать маршрут, рассказать о подготовке и снаряжении. Что тебя интересует?</div>
+      <div class="trail-quick-replies">
+        <button type="button" data-prompt="Я новичок, хочу лёгкий маршрут на несколько часов">Я новичок</button>
+        <button type="button" data-prompt="У меня средний опыт, хочу поход на целый день">Есть опыт</button>
+        <button type="button" data-prompt="Ищу сложный многодневный поход">Многодневный поход</button>
+      </div>
+    </div>
+    <form id="trail-chat-input-area">
+      <input id="trail-chat-input" type="text" autocomplete="off" placeholder="Например: лёгкий маршрут до 10 км..." aria-label="Ваш вопрос" />
+      <button id="trail-chat-send" type="submit" aria-label="Отправить">➤</button>
+    </form>
+    <div class="trail-chat-footnote">Ответы формируются ИИ. Проверяй актуальные погоду, ограничения и состояние маршрута перед походом.</div>
+  </section>
+  <script src="js/trail-assistant.js" defer></script>
 </body>
 </html>

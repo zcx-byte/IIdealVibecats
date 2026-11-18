@@ -15,6 +15,9 @@ const APP_STATE = {
   activeDifficulty: null
 };
 
+// Делаем каталог доступным помощнику на всех страницах, где загружается app.js.
+window.APP_STATE = APP_STATE;
+
 const UI_ICONS = {
   distance: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
   time: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,
@@ -114,7 +117,7 @@ function showLoadError(message) {
  * Загружает маршруты и регионы из Supabase.
  * Разделяет запросы, чтобы избежать проблем с RLS и JOIN, если они не настроены.
  */
-async function loadRoutes() {
+async function loadRoutesFromDatabase() {
   await loadConfigFromFile();
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes("YOUR_PROJECT")) {
@@ -168,6 +171,27 @@ async function loadRoutes() {
     return [];
   }
 }
+
+// Единый источник данных для интерфейса и ИИ-помощника.
+// Все страницы используют один и тот же результат загрузки каталога, без повторного запроса.
+function loadRoutes() {
+  if (!window.TRAIL_ROUTES_PROMISE) {
+    window.TRAIL_ROUTES_PROMISE = loadRoutesFromDatabase()
+      .then(routes => {
+        const list = Array.isArray(routes) ? routes : [];
+        if (window.APP_STATE) window.APP_STATE.allRoutes = list;
+        window.dispatchEvent(new CustomEvent("trail-routes-loaded", { detail: { routes: list } }));
+        return list;
+      })
+      .catch(error => {
+        console.error("[Тропы] Не удалось подготовить каталог маршрутов:", error);
+        window.dispatchEvent(new CustomEvent("trail-routes-loaded", { detail: { routes: [] } }));
+        return [];
+      });
+  }
+  return window.TRAIL_ROUTES_PROMISE;
+}
+window.loadTrailRoutes = loadRoutes;
 
 /**
  * Собирает все уникальные теги из списка маршрутов для фильтрации.
@@ -332,6 +356,7 @@ function createRouteCardHtml(route) {
     <article class="route-card" data-slug="${escapeHtml(route.slug)}" role="link" tabindex="0">
       <div class="route-card-img">
         ${imageHtml}
+        <button type="button" class="route-fav-button ${window.TrailAuth?.isFavorite(route.id) ? "is-favorite" : ""}" data-favorite-route="${escapeHtml(route.id)}" aria-label="Добавить в избранное" aria-pressed="${window.TrailAuth?.isFavorite(route.id) ? "true" : "false"}">${window.TrailAuth?.isFavorite(route.id) ? "♥" : "♡"}</button>
         <span class="route-card-badge">${escapeHtml(route.route_type || "маршрут")}</span>
       </div>
       <div class="route-card-body">
@@ -385,6 +410,19 @@ function renderRoutes() {
         e.preventDefault();
         navigate();
       }
+    });
+  });
+
+  grid.querySelectorAll("[data-favorite-route]").forEach(button => {
+    button.addEventListener("click", async event => {
+      event.stopPropagation();
+      const route = APP_STATE.allRoutes.find(item => String(item.id) === String(button.dataset.favoriteRoute));
+      if (!route || !window.TrailAuth) return;
+      await window.TrailAuth.toggleFavorite(route);
+      const favorite = window.TrailAuth.isFavorite(route.id);
+      button.classList.toggle("is-favorite", favorite);
+      button.textContent = favorite ? "♥" : "♡";
+      button.setAttribute("aria-pressed", favorite ? "true" : "false");
     });
   });
 
@@ -460,3 +498,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderRoutes();
   });
 });
+window.addEventListener("trail-auth-ready", () => { if (APP_STATE.allRoutes.length) renderRoutes(); });
+window.addEventListener("trail-auth-change", () => { if (APP_STATE.allRoutes.length) renderRoutes(); });

@@ -345,49 +345,45 @@
         </div>
       </div>
 
-      <div class="route-tabs" role="tablist">
-        <button type="button" class="route-tab active" data-tab="desc">Описание</button>
-        <button type="button" class="route-tab" data-tab="map">Карта и профиль</button>
-        <button type="button" class="route-tab" data-tab="rest">Места для отдыха</button>
-        <button type="button" class="route-tab" data-tab="howto">Как добраться</button>
-        <button type="button" class="route-tab" data-tab="tips">Рекомендации</button>
-      </div>
+      <nav class="route-tabs" aria-label="Разделы маршрута">
+        <a class="route-tab active" href="#desc" data-tab="desc">Описание</a>
+        <a class="route-tab" href="#map" data-tab="map">Карта и профиль</a>
+        <a class="route-tab" href="#rest" data-tab="rest">Места для отдыха</a>
+        <a class="route-tab" href="#howto" data-tab="howto">Как добраться</a>
+        <a class="route-tab" href="#tips" data-tab="tips">Рекомендации</a>
+      </nav>
 
       <div class="route-body">
         <div class="route-main">
-          <div class="route-panel active" data-panel="desc">
+          <section class="route-panel active" id="desc" data-panel="desc">
             <div class="route-card-detail">
               <h2><span class="emoji">📝</span> Описание маршрута</h2>
               ${renderParagraph(route.description || route.short_announcement)}
             </div>
-            <div class="route-card-detail">
-              <h2><span class="emoji">🗺</span> Карта маршрута</h2>
-              ${renderMapPlaceholder()}
-            </div>
-          </div>
+          </section>
 
-          <div class="route-panel" data-panel="map">
+          <section class="route-panel" id="map" data-panel="map">
             <div class="route-card-detail">
               <h2><span class="emoji">🗺</span> Карта и профиль</h2>
               ${renderMapPlaceholder()}
             </div>
-          </div>
+          </section>
 
-          <div class="route-panel" data-panel="rest">
+          <section class="route-panel" id="rest" data-panel="rest">
             <div class="route-card-detail">
               <h2>Места для отдыха</h2>
               ${renderParagraph(route.rest_and_sleep)}
             </div>
-          </div>
+          </section>
 
-          <div class="route-panel" data-panel="howto">
+          <section class="route-panel" id="howto" data-panel="howto">
             <div class="route-card-detail">
               <h2>Как добраться до старта</h2>
               ${renderParagraph(route.how_to_get)}
             </div>
-          </div>
+          </section>
 
-          <div class="route-panel" data-panel="tips">
+          <section class="route-panel" id="tips" data-panel="tips">
             <div class="route-card-detail">
               <h2>Рекомендации</h2>
               ${renderParagraph(route.recommendations)}
@@ -395,7 +391,7 @@
             ${route.dangers ? `<div class="route-card-detail"><h2>Опасности</h2>${renderParagraph(route.dangers)}</div>` : ""}
             ${route.water_info ? `<div class="route-card-detail"><h2>Вода</h2>${renderParagraph(route.water_info)}</div>` : ""}
             ${route.gear_list ? `<div class="route-card-detail"><h2>Снаряжение</h2>${renderParagraph(route.gear_list)}</div>` : ""}
-          </div>
+          </section>
         </div>
 
         <aside class="route-sidebar">
@@ -422,12 +418,19 @@
 
     setupTabs(root);
 
+    // Карта запускается независимо от авторизации: ожидание Supabase не должно её блокировать.
     // Определяем данные для карты: либо из resolveTrailMapData (если есть map-data.js), либо напрямую из БД
-    const mapData = typeof resolveTrailMapData === "function" 
-      ? resolveTrailMapData(route) 
+    const mapData = typeof resolveTrailMapData === "function"
+      ? resolveTrailMapData(route)
       : route.map_data;
-
     initMaps(root, mapData);
+
+    // Действия аккаунта подключаем отдельно, не задерживая отображение карты.
+    if (window.TrailAuth) {
+      window.TrailAuth.ready()
+        .then(() => window.TrailAuth.bindRouteActions(root, route))
+        .catch(error => console.error("[Тропы] Не удалось подключить действия аккаунта:", error));
+    }
 
     // Обработчик кнопки "Открыть карту" в сайдбаре
     const mapBtn = root.querySelector("[data-goto-map]");

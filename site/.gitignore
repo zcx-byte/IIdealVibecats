@@ -1,1 +1,7 @@
 config.txt
+.env
+chat-history/
+node_modules/
+
+*.txt
+

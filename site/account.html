@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Мой профиль — Тропы России</title>
+  <meta name="description" content="Личный кабинет: избранные маршруты и персональный план походов." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo"><span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 19h20L12 2z"/><path d="M12 10v4M12 18h.01"/></svg></span>Тропы России</a>
+      <nav class="nav"><a href="index.html">Маршруты</a><a href="beginners.html">Для новичков</a><a href="account.html" class="active">Мой профиль</a></nav>
+      <div class="header-actions"><button class="btn btn-ghost" type="button" data-auth-control>Войти</button><a href="account.html#plan" class="btn btn-primary" data-account-link>Мой план</a><button class="menu-btn" aria-label="Открыть меню"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div>
+    </div>
+  </header>
+  <main class="account-page">
+    <div class="account-container">
+      <section class="account-hero">
+        <div><span class="account-kicker">ВАШЕ ПРОСТРАНСТВО ДЛЯ ПУТЕШЕСТВИЙ</span><h1>Мой профиль</h1><p id="account-greeting">Сохраняйте интересные тропы и готовьте следующий поход.</p></div>
+        <a href="index.html" class="account-hero-link">Найти маршрут <span>→</span></a>
+      </section>
+      <div id="account-content"><div class="account-loading">Загружаем ваш профиль…</div></div>
+    </div>
+  </main>
+  <footer class="footer"><div class="footer-inner"><div class="footer-bottom"><span>© 2026 Тропы России · Волонтёрский проект</span><span>Сделано с заботой о природе</span></div></div></footer>
+  <script src="js/app.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/account.js" defer></script>
+</body>
+</html>
