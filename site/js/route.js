@@ -1,9 +1,12 @@
+// Страница маршрута: данные, вкладки, карта и дополнительные блоки.
+
 /**
  * Логика страницы детального просмотра маршрута.
  * Управляет вкладками, загрузкой данных и отрисовкой интерактивной карты.
  */
 
-(function() {
+(function () {
+  
   /** Безопасное экранирование (дублируется здесь для автономности модуля) */
   function escapeHtml(value) {
     if (value == null) return "";
@@ -357,7 +360,7 @@
         <div class="route-main">
           <section class="route-panel active" id="desc" data-panel="desc">
             <div class="route-card-detail">
-              <h2><span class="emoji">📝</span> Описание маршрута</h2>
+              <h2>Описание маршрута</h2>
               ${renderParagraph(route.description || route.short_announcement)}
             </div>
           </section>

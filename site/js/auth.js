@@ -1,3 +1,5 @@
+// Авторизация, избранное и личный план маршрутов.
+
 /*
  * Аккаунт, избранное и личный план «Тропы России».
  * Использует Supabase Auth + таблицы favorites и trip_plan.
@@ -251,7 +253,10 @@
     const client = await getClient();
     if (state.favorites.has(routeId)) {
       const { error } = await client.from('favorites').delete().eq('user_id', state.user.id).eq('route_id', route.id);
-      if (error) { notify(error.message || 'Не удалось удалить из избранного.', 'error'); return false; }
+      if (error) {
+        notify(error.message || 'Не удалось удалить из избранного.', 'error');
+        return false;
+      }
       state.favorites.delete(routeId);
       notify('Маршрут удалён из избранного.');
     } else {
@@ -259,7 +264,11 @@
         { user_id: state.user.id, route_id: route.id },
         { onConflict: 'user_id,route_id', ignoreDuplicates: true }
       );
-      if (error) { notify('Не удалось сохранить маршрут. Проверьте, что SQL установлен в Supabase.', 'error'); console.error(error); return false; }
+      if (error) {
+        notify('Не удалось сохранить маршрут. Проверьте, что SQL установлен в Supabase.', 'error');
+        console.error(error);
+        return false;
+      }
       state.favorites.add(routeId);
       notify('Маршрут добавлен в избранное.');
     }
@@ -307,7 +316,10 @@
     if (!state.user) return false;
     const client = await getClient();
     const { error } = await client.from('trip_plan').delete().eq('id', id).eq('user_id', state.user.id);
-    if (error) { notify(error.message || 'Не удалось удалить запись.', 'error'); return false; }
+    if (error) {
+      notify(error.message || 'Не удалось удалить запись.', 'error');
+      return false;
+    }
     state.plan = state.plan.filter(row => row.id !== id);
     dispatchAuthEvent();
     notify('Запись удалена из плана.');
@@ -325,7 +337,10 @@
     const { data, error } = await client.from('trip_plan').update(safeUpdates)
       .eq('id', id).eq('user_id', state.user.id)
       .select('id, route_id, planned_date, status, note, created_at').single();
-    if (error) { notify(error.message || 'Не удалось сохранить изменения.', 'error'); return false; }
+    if (error) {
+      notify(error.message || 'Не удалось сохранить изменения.', 'error');
+      return false;
+    }
     state.plan = state.plan.map(row => row.id === id ? data : row);
     dispatchAuthEvent();
     notify('Изменения сохранены.');

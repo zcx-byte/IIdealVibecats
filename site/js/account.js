@@ -1,3 +1,5 @@
+// Страница профиля: вкладки, избранное и запланированные маршруты.
+
 (function () {
   const root = document.getElementById('account-content');
   let routes = [];
@@ -31,7 +33,10 @@
 
   function render() {
     const user = window.TrailAuth.getUser();
-    if (!user) { window.TrailAuth.renderAccountSignedOut(); return; }
+    if (!user) {
+      window.TrailAuth.renderAccountSignedOut();
+      return;
+    }
     const favorites = window.TrailAuth.getFavorites();
     const plan = window.TrailAuth.getPlan();
     const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'путешественник';
